@@ -1,16 +1,16 @@
-﻿import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
 export default function BottomNav() {
   const { dueReviewItems } = useUser();
   const reviewCount = dueReviewItems.length;
   const items = [
-    { to: "/home", label: "Home", icon: "🏠" },
-    { to: "/modules", label: "Módulos", icon: "📚" },
-    { to: "/review", label: "Repaso", icon: "🔄", badge: reviewCount },
-    { to: "/chat", label: "Chat", icon: "💬" },
-    { to: "/ranking", label: "Ranking", icon: "🏆" },
-    { to: "/profile", label: "Perfil", icon: "👤" },
+    { to: "/home", label: "Home", icon: "\uD83C\uDFE0" },
+    { to: "/modules", label: "M\u00F3dulos", icon: "\uD83D\uDCDA" },
+    { to: "/review", label: "Repaso", icon: "\uD83D\uDD04", badge: reviewCount },
+    { to: "/chat", label: "Chat", icon: "\uD83D\uDCAC" },
+    { to: "/stories", label: "Historias", icon: "\uD83D\uDCD6" },
+    { to: "/profile", label: "Perfil", icon: "\uD83D\uDC64" },
   ];
 
   return (

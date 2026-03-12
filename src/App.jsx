@@ -1,4 +1,4 @@
-﻿import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { useUser } from "./contexts/UserContext";
 import BadgeUnlockToast from "./components/BadgeUnlockToast";
@@ -13,6 +13,7 @@ import QuizPage from "./pages/QuizPage";
 import RankingPage from "./pages/RankingPage";
 import ReviewPage from "./pages/ReviewPage";
 import ChatPage from "./pages/ChatPage";
+import StoriesPage from "./pages/StoriesPage";
 import WelcomePage from "./pages/WelcomePage";
 
 function SplashScreen() {
@@ -118,6 +119,7 @@ export default function App() {
         <Route path="/modules" element={<ModulePage />} />
         <Route path="/review" element={<ReviewPage />} />
         <Route path="/chat" element={<ChatPage />} />
+        <Route path="/stories" element={<StoriesPage />} />
         <Route path="/module/:id" element={<LessonView />} />
         <Route path="/module/:id/quiz" element={<QuizPage />} />
         <Route path="/ranking" element={<RankingPage />} />

@@ -1,5 +1,6 @@
 ﻿import BadgeCard from "../components/BadgeCard";
 import ProgressBar from "../components/ProgressBar";
+import WeeklyChart from "../components/WeeklyChart";
 import { BADGES } from "../data/badges";
 import { modules } from "../data/phrasalVerbs";
 import { useAuth } from "../contexts/AuthContext";
@@ -17,6 +18,16 @@ export default function ProfilePage() {
     toggleTheme,
   } = useUser();
   const initial = profile?.username?.charAt(0)?.toUpperCase() ?? user?.email?.charAt(0)?.toUpperCase() ?? "U";
+  const weeklyHighlightColor = modules.reduce(
+    (selected, module) => {
+      const progress = moduleProgress[module.id]?.percentage ?? 0;
+      if (progress >= selected.percentage) {
+        return { percentage: progress, color: module.color };
+      }
+      return selected;
+    },
+    { percentage: 0, color: "#58CC02" },
+  ).color;
 
   return (
     <section className="space-y-6">
@@ -99,15 +110,22 @@ export default function ProfilePage() {
       </div>
 
       <div className="glass-card p-6 sm:p-8">
+        <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Actividad reciente</p>
+        <h3 className="mt-3 text-3xl font-black text-slate-900 dark:text-white">Actividad esta semana</h3>
+        <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
+          Phrasal verbs aprendidos en los últimos 7 días
+        </p>
+        <div className="mt-6">
+          <WeeklyChart data={stats.weeklyData} color={weeklyHighlightColor} />
+        </div>
+      </div>
+
+      <div className="glass-card p-6 sm:p-8">
         <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Mis logros</p>
         <h3 className="mt-3 text-3xl font-black text-slate-900 dark:text-white">Insignias desbloqueables</h3>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {BADGES.map((badge) => (
-            <BadgeCard
-              key={badge.id}
-              badge={badge}
-              unlocked={stats.unlockedBadges.includes(badge.id)}
-            />
+            <BadgeCard key={badge.id} badge={badge} unlocked={stats.unlockedBadges.includes(badge.id)} />
           ))}
         </div>
       </div>

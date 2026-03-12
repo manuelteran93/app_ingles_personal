@@ -1,4 +1,4 @@
-ï»¿import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { assertSupabase, isSupabaseConfigured } from "../lib/supabase";
 import { allPhrasalVerbs, modules } from "../data/phrasalVerbs";
@@ -92,6 +92,31 @@ function formatDateLabel(dateString) {
   return new Date(`${dateString}T00:00:00`).toLocaleDateString("es-CL", {
     day: "numeric",
     month: "long",
+  });
+}
+
+function buildWeeklyData(progressEntries) {
+  const dayLabels = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+    const dateKey = toLocalDateString(date);
+
+    const learned = progressEntries.filter((entry) => {
+      if (entry.status !== "learned" || !entry.updated_at) {
+        return false;
+      }
+
+      return toLocalDateString(entry.updated_at) === dateKey;
+    }).length;
+
+    return {
+      day: dayLabels[date.getDay()],
+      learned,
+    };
   });
 }
 
@@ -213,6 +238,11 @@ export function UserProvider({ children }) {
       });
   }, [normalizedProgress, phraseMap]);
 
+  const weeklyData = useMemo(
+    () => buildWeeklyData(normalizedProgress),
+    [normalizedProgress],
+  );
+
   const nextReviewDate = useMemo(() => {
     const futureDates = normalizedProgress
       .map((entry) => entry.next_review_date)
@@ -229,8 +259,9 @@ export function UserProvider({ children }) {
       dueReviewCount: dueReviewItems.length,
       nextReviewDate,
       nextReviewDateLabel: formatDateLabel(nextReviewDate),
+      weeklyData,
     }),
-    [baseStats, unlockedBadges, dueReviewItems.length, nextReviewDate],
+    [baseStats, unlockedBadges, dueReviewItems.length, nextReviewDate, weeklyData],
   );
 
   function queueBadgeUnlocks(previousBadgeIds, nextBadgeIds) {
@@ -652,5 +683,9 @@ export function useUser() {
 
   return context;
 }
+
+
+
+
 
 

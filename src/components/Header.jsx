@@ -1,13 +1,14 @@
-﻿import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useUser } from "../contexts/UserContext";
 import StreakBadge from "./StreakBadge";
 
 const titles = {
   "/home": "Tu progreso",
-  "/modules": "Módulos",
+  "/modules": "M\u00F3dulos",
   "/review": "Repaso diario",
   "/chat": "Chat con IA",
+  "/stories": "Historias en ingl\u00E9s",
   "/ranking": "Ranking social",
   "/profile": "Perfil",
 };
@@ -17,7 +18,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { user, signOut, isGuestUser } = useAuth();
   const { profile, theme, toggleTheme } = useUser();
-  const title = titles[location.pathname] ?? "Lección";
+  const title = titles[location.pathname] ?? "Lecci\u00F3n";
 
   async function handleBackToStart() {
     await signOut();
@@ -36,7 +37,7 @@ export default function Header() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-soft dark:bg-slate-900 dark:text-slate-100">
-          ⭐ {profile?.total_points ?? 0} pts
+          {"\u2B50 "}{profile?.total_points ?? 0} pts
         </div>
         <StreakBadge value={profile?.current_streak ?? 0} />
         <button
