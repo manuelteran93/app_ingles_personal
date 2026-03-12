@@ -1,0 +1,44 @@
+﻿import { useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useUser } from "../contexts/UserContext";
+import StreakBadge from "./StreakBadge";
+
+const titles = {
+  "/home": "Tu progreso",
+  "/modules": "Módulos",
+  "/ranking": "Ranking social",
+  "/profile": "Perfil",
+};
+
+export default function Header() {
+  const location = useLocation();
+  const { user } = useAuth();
+  const { profile, theme, toggleTheme } = useUser();
+  const title = titles[location.pathname] ?? "Lección";
+
+  return (
+    <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">English Quest</p>
+        <h1 className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{title}</h1>
+        <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
+          {profile?.username ?? user?.email ?? "Aprendiz"}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-soft dark:bg-slate-900 dark:text-slate-100">
+          ⭐ {profile?.total_points ?? 0} pts
+        </div>
+        <StreakBadge value={profile?.current_streak ?? 0} />
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="pill-button bg-slate-900 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+        >
+          {theme === "light" ? "Modo oscuro" : "Modo claro"}
+        </button>
+      </div>
+    </header>
+  );
+}
