@@ -29,6 +29,8 @@ create table if not exists public.user_progress (
   module_id integer not null,
   phrase_id text not null,
   status text not null,
+  srs_level integer not null default 0,
+  next_review_date date,
   updated_at timestamptz not null default timezone('utc', now()),
   constraint user_progress_status_check check (status in ('learned', 'reviewing')),
   constraint user_progress_unique unique (user_id, module_id, phrase_id)
@@ -53,6 +55,9 @@ create table if not exists public.friendships (
   constraint friendships_status_check check (status in ('pending', 'accepted')),
   constraint friendships_not_self check (user_id <> friend_id)
 );
+
+alter table public.user_progress add column if not exists srs_level int default 0;
+alter table public.user_progress add column if not exists next_review_date date;
 
 create unique index if not exists friendships_unique_pair_idx
   on public.friendships ((least(user_id, friend_id)), (greatest(user_id, friend_id)));

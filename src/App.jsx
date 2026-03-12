@@ -1,8 +1,9 @@
 ﻿import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { useUser } from "./contexts/UserContext";
-import Header from "./components/Header";
+import BadgeUnlockToast from "./components/BadgeUnlockToast";
 import BottomNav from "./components/BottomNav";
+import Header from "./components/Header";
 import HomePage from "./pages/HomePage";
 import LessonView from "./pages/LessonView";
 import LoginPage from "./pages/LoginPage";
@@ -10,6 +11,8 @@ import ModulePage from "./pages/ModulePage";
 import ProfilePage from "./pages/ProfilePage";
 import QuizPage from "./pages/QuizPage";
 import RankingPage from "./pages/RankingPage";
+import ReviewPage from "./pages/ReviewPage";
+import ChatPage from "./pages/ChatPage";
 import WelcomePage from "./pages/WelcomePage";
 
 function SplashScreen() {
@@ -68,6 +71,8 @@ function PublicOnlyRoute({ children }) {
 }
 
 function AppLayout() {
+  const { activeBadgeToast } = useUser();
+
   return (
     <div className="app-shell">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-4 sm:px-6 lg:px-8">
@@ -76,6 +81,7 @@ function AppLayout() {
           <Outlet />
         </main>
         <BottomNav />
+        <BadgeUnlockToast badge={activeBadgeToast} />
       </div>
     </div>
   );
@@ -110,6 +116,8 @@ export default function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/modules" element={<ModulePage />} />
+        <Route path="/review" element={<ReviewPage />} />
+        <Route path="/chat" element={<ChatPage />} />
         <Route path="/module/:id" element={<LessonView />} />
         <Route path="/module/:id/quiz" element={<QuizPage />} />
         <Route path="/ranking" element={<RankingPage />} />

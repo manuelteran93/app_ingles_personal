@@ -1,11 +1,21 @@
-﻿import { modules } from "../data/phrasalVerbs";
+﻿import BadgeCard from "../components/BadgeCard";
+import ProgressBar from "../components/ProgressBar";
+import { BADGES } from "../data/badges";
+import { modules } from "../data/phrasalVerbs";
 import { useAuth } from "../contexts/AuthContext";
 import { useUser } from "../contexts/UserContext";
-import ProgressBar from "../components/ProgressBar";
 
 export default function ProfilePage() {
-  const { user, signOut } = useAuth();
-  const { profile, moduleProgress, stats, streakReminderEnabled, toggleStreakReminder, theme, toggleTheme } = useUser();
+  const { user, signOut, isGuestUser } = useAuth();
+  const {
+    profile,
+    moduleProgress,
+    stats,
+    streakReminderEnabled,
+    toggleStreakReminder,
+    theme,
+    toggleTheme,
+  } = useUser();
   const initial = profile?.username?.charAt(0)?.toUpperCase() ?? user?.email?.charAt(0)?.toUpperCase() ?? "U";
 
   return (
@@ -64,7 +74,7 @@ export default function ProfilePage() {
               onClick={signOut}
               className="pill-button w-full bg-slate-900 py-3 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900"
             >
-              Cerrar sesión
+              {isGuestUser ? "Volver al inicio" : "Cerrar sesión"}
             </button>
           </div>
         </div>
@@ -77,11 +87,27 @@ export default function ProfilePage() {
             ["Módulos completados", stats.completedModules],
             ["Phrasal verbs aprendidos", stats.learnedCount],
             ["Quizzes completados", stats.quizzesCompleted],
+            ["Quizzes perfectos", stats.perfectQuizzes],
+            ["Repasos pendientes", stats.dueReviewCount],
           ].map(([label, value]) => (
             <div key={label} className="glass-card p-5">
               <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">{label}</p>
               <p className="mt-3 text-3xl font-black text-slate-900 dark:text-white">{value}</p>
             </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="glass-card p-6 sm:p-8">
+        <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Mis logros</p>
+        <h3 className="mt-3 text-3xl font-black text-slate-900 dark:text-white">Insignias desbloqueables</h3>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {BADGES.map((badge) => (
+            <BadgeCard
+              key={badge.id}
+              badge={badge}
+              unlocked={stats.unlockedBadges.includes(badge.id)}
+            />
           ))}
         </div>
       </div>

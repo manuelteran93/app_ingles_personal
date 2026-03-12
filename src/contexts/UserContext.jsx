@@ -1,9 +1,11 @@
 ﻿import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { assertSupabase, isSupabaseConfigured } from "../lib/supabase";
-import { buildModuleProgress } from "../utils/moduleHelpers";
+import { allPhrasalVerbs, modules } from "../data/phrasalVerbs";
+import { BADGES, checkBadges, getBadgeById } from "../data/badges";
 import { diffInCalendarDays, toLocalDateString } from "../utils/date";
-import { modules } from "../data/phrasalVerbs";
+import { buildModuleProgress } from "../utils/moduleHelpers";
+import { getNewLevel, getNextReviewDate, isDueForReview } from "../utils/srs";
 
 const UserContext = createContext(null);
 const THEME_KEY = "english-quest-theme";
@@ -56,6 +58,43 @@ function writeDemoDb(data) {
   localStorage.setItem(DEMO_DB_KEY, JSON.stringify(data));
 }
 
+function normalizeProgressEntry(entry) {
+  return {
+    ...entry,
+    srs_level: entry?.srs_level ?? 0,
+    next_review_date: entry?.next_review_date ?? null,
+  };
+}
+
+function buildStatsState(progressEntries, quizEntries, activeProfile) {
+  const moduleProgress = buildModuleProgress(progressEntries);
+  const completedModules = Object.values(moduleProgress).filter((item) => item.completed).length;
+  const learnedCount = progressEntries.filter((entry) => entry.status === "learned").length;
+  const perfectQuizzes = quizEntries.filter(
+    (entry) => entry.score === entry.total_questions,
+  ).length;
+
+  return {
+    completedModules,
+    learnedCount,
+    quizzesCompleted: quizEntries.length,
+    totalModules: modules.length,
+    perfectQuizzes,
+    currentStreak: activeProfile?.current_streak ?? 0,
+  };
+}
+
+function formatDateLabel(dateString) {
+  if (!dateString) {
+    return null;
+  }
+
+  return new Date(`${dateString}T00:00:00`).toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "long",
+  });
+}
+
 export function UserProvider({ children }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -65,6 +104,8 @@ export function UserProvider({ children }) {
   const [theme, setTheme] = useState(getStoredTheme);
   const [streakReminderEnabled, setStreakReminderEnabled] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [badgeQueue, setBadgeQueue] = useState([]);
+  const [activeBadgeToast, setActiveBadgeToast] = useState(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -77,6 +118,8 @@ export function UserProvider({ children }) {
       setUserProgress([]);
       setQuizResults([]);
       setOnboardingComplete(true);
+      setBadgeQueue([]);
+      setActiveBadgeToast(null);
       return;
     }
 
@@ -96,19 +139,112 @@ export function UserProvider({ children }) {
     return undefined;
   }, [user]);
 
-  const moduleProgress = useMemo(() => buildModuleProgress(userProgress), [userProgress]);
+  useEffect(() => {
+    if (!activeBadgeToast && badgeQueue.length > 0) {
+      setActiveBadgeToast(badgeQueue[0]);
+      return undefined;
+    }
 
-  const stats = useMemo(() => {
-    const completedModules = Object.values(moduleProgress).filter((item) => item.completed).length;
-    const learnedCount = userProgress.filter((entry) => entry.status === "learned").length;
+    if (!activeBadgeToast) {
+      return undefined;
+    }
 
-    return {
-      completedModules,
-      learnedCount,
-      quizzesCompleted: quizResults.length,
-      totalModules: modules.length,
-    };
-  }, [moduleProgress, quizResults, userProgress]);
+    const timeoutId = window.setTimeout(() => {
+      setBadgeQueue((current) => current.slice(1));
+      setActiveBadgeToast(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [badgeQueue, activeBadgeToast]);
+
+  const phraseMap = useMemo(
+    () => new Map(allPhrasalVerbs.map((phrase) => [phrase.id, phrase])),
+    [],
+  );
+
+  const normalizedProgress = useMemo(
+    () => userProgress.map((entry) => normalizeProgressEntry(entry)),
+    [userProgress],
+  );
+
+  const moduleProgress = useMemo(
+    () => buildModuleProgress(normalizedProgress),
+    [normalizedProgress],
+  );
+
+  const baseStats = useMemo(
+    () => buildStatsState(normalizedProgress, quizResults, profile),
+    [normalizedProgress, quizResults, profile],
+  );
+
+  const unlockedBadges = useMemo(
+    () => checkBadges(baseStats, profile),
+    [baseStats, profile],
+  );
+
+  const dueReviewItems = useMemo(() => {
+    return normalizedProgress
+      .filter((entry) => entry.srs_level > 0 && isDueForReview(entry.next_review_date))
+      .map((entry) => {
+        const phrase = phraseMap.get(entry.phrase_id);
+        if (!phrase) {
+          return null;
+        }
+
+        const module = modules.find((item) => item.id === entry.module_id);
+        return {
+          progressId: entry.id,
+          moduleId: entry.module_id,
+          moduleColor: module?.color ?? "#58CC02",
+          moduleTitle: module?.title ?? "Repaso",
+          phrase,
+          status: entry.status,
+          srsLevel: entry.srs_level,
+          nextReviewDate: entry.next_review_date,
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) => {
+        if ((left.nextReviewDate ?? "") === (right.nextReviewDate ?? "")) {
+          return left.moduleId - right.moduleId;
+        }
+
+        return (left.nextReviewDate ?? "").localeCompare(right.nextReviewDate ?? "");
+      });
+  }, [normalizedProgress, phraseMap]);
+
+  const nextReviewDate = useMemo(() => {
+    const futureDates = normalizedProgress
+      .map((entry) => entry.next_review_date)
+      .filter((date) => date && date > toLocalDateString())
+      .sort((left, right) => left.localeCompare(right));
+
+    return futureDates[0] ?? null;
+  }, [normalizedProgress]);
+
+  const stats = useMemo(
+    () => ({
+      ...baseStats,
+      unlockedBadges,
+      dueReviewCount: dueReviewItems.length,
+      nextReviewDate,
+      nextReviewDateLabel: formatDateLabel(nextReviewDate),
+    }),
+    [baseStats, unlockedBadges, dueReviewItems.length, nextReviewDate],
+  );
+
+  function queueBadgeUnlocks(previousBadgeIds, nextBadgeIds) {
+    const newBadgeIds = nextBadgeIds.filter((badgeId) => !previousBadgeIds.includes(badgeId));
+    if (!newBadgeIds.length) {
+      return;
+    }
+
+    const newBadges = newBadgeIds
+      .map((badgeId) => getBadgeById(badgeId))
+      .filter(Boolean);
+
+    setBadgeQueue((current) => [...current, ...newBadges]);
+  }
 
   function ensureDemoProfileRecord(db) {
     if (db.profiles[user.id]) {
@@ -183,7 +319,7 @@ export function UserProvider({ children }) {
       if (!isSupabaseConfigured) {
         const db = readDemoDb();
         const ensuredProfile = ensureDemoProfileRecord(db);
-        const nextProgress = db.progress[user.id] ?? [];
+        const nextProgress = (db.progress[user.id] ?? []).map((entry) => normalizeProgressEntry(entry));
         const nextQuizzes = (db.quizzes[user.id] ?? []).sort(
           (left, right) => new Date(right.completed_at) - new Date(left.completed_at),
         );
@@ -212,23 +348,23 @@ export function UserProvider({ children }) {
       }
 
       setProfile(ensuredProfile);
-      setUserProgress(progressResponse.data ?? []);
+      setUserProgress((progressResponse.data ?? []).map((entry) => normalizeProgressEntry(entry)));
       setQuizResults(quizzesResponse.data ?? []);
     } finally {
       setLoading(false);
     }
   }
 
-  async function updateProfileWithPractice(basePoints = 0) {
-    if (!user || !profile) {
-      return 0;
+  async function updateProfileWithPractice(basePoints = 0, profileSnapshot = profile) {
+    if (!user || !profileSnapshot) {
+      return { awardedPoints: 0, profile: profileSnapshot };
     }
 
     const today = toLocalDateString();
-    const lastPracticeDate = profile.last_practice_date;
+    const lastPracticeDate = profileSnapshot.last_practice_date;
     const dayGap = lastPracticeDate ? diffInCalendarDays(lastPracticeDate, today) : null;
-    let currentStreak = profile.current_streak ?? 0;
-    let longestStreak = profile.longest_streak ?? 0;
+    let currentStreak = profileSnapshot.current_streak ?? 0;
+    let longestStreak = profileSnapshot.longest_streak ?? 0;
     let streakBonus = 0;
 
     if (lastPracticeDate !== today) {
@@ -237,9 +373,9 @@ export function UserProvider({ children }) {
       streakBonus = 10;
     }
 
-    const updates = {
-      ...profile,
-      total_points: (profile.total_points ?? 0) + basePoints + streakBonus,
+    const nextProfile = {
+      ...profileSnapshot,
+      total_points: (profileSnapshot.total_points ?? 0) + basePoints + streakBonus,
       current_streak: currentStreak,
       longest_streak: longestStreak,
       last_practice_date: today,
@@ -247,20 +383,20 @@ export function UserProvider({ children }) {
 
     if (!isSupabaseConfigured) {
       const db = readDemoDb();
-      db.profiles[user.id] = updates;
+      db.profiles[user.id] = nextProfile;
       writeDemoDb(db);
-      setProfile(updates);
-      return basePoints + streakBonus;
+      setProfile(nextProfile);
+      return { awardedPoints: basePoints + streakBonus, profile: nextProfile };
     }
 
     const client = assertSupabase();
     const { data, error } = await client
       .from("profiles")
       .update({
-        total_points: updates.total_points,
-        current_streak: updates.current_streak,
-        longest_streak: updates.longest_streak,
-        last_practice_date: updates.last_practice_date,
+        total_points: nextProfile.total_points,
+        current_streak: nextProfile.current_streak,
+        longest_streak: nextProfile.longest_streak,
+        last_practice_date: nextProfile.last_practice_date,
       })
       .eq("id", user.id)
       .select("*")
@@ -271,43 +407,59 @@ export function UserProvider({ children }) {
     }
 
     setProfile(data);
-    return basePoints + streakBonus;
+    return { awardedPoints: basePoints + streakBonus, profile: data };
   }
 
-  async function markPhraseStatus(moduleId, phraseId, status) {
+  async function markPhraseStatus(moduleId, phraseId, status, options = {}) {
     if (!user) {
       return { awardedPoints: 0 };
     }
 
-    const existing = userProgress.find(
+    const existing = normalizedProgress.find(
       (entry) => entry.module_id === moduleId && entry.phrase_id === phraseId,
     );
-    const learnedPoints = status === "learned" && existing?.status !== "learned" ? 5 : 0;
+    const previousBadgeIds = checkBadges(
+      buildStatsState(normalizedProgress, quizResults, profile),
+      profile,
+    );
+    const nextLevel = getNewLevel(existing?.srs_level ?? 0, status === "learned");
+    const nextReviewDate = getNextReviewDate(nextLevel);
+    const basePoints =
+      options.pointsOverride ??
+      (status === "learned" && existing?.status !== "learned" ? 5 : 0);
 
     if (!isSupabaseConfigured) {
       const db = readDemoDb();
-      const currentRows = db.progress[user.id] ?? [];
+      const currentRows = (db.progress[user.id] ?? []).map((entry) => normalizeProgressEntry(entry));
       const nextRow = {
         id: existing?.id ?? createId(),
         user_id: user.id,
         module_id: moduleId,
         phrase_id: phraseId,
         status,
+        srs_level: nextLevel,
+        next_review_date: nextReviewDate,
         updated_at: new Date().toISOString(),
       };
-      const nextRows = [
+      const nextProgress = [
         ...currentRows.filter(
           (entry) => !(entry.module_id === moduleId && entry.phrase_id === phraseId),
         ),
         nextRow,
       ];
 
-      db.progress[user.id] = nextRows;
+      db.progress[user.id] = nextProgress;
       writeDemoDb(db);
-      setUserProgress(nextRows);
+      setUserProgress(nextProgress);
 
-      const awardedPoints = await updateProfileWithPractice(learnedPoints);
-      return { awardedPoints, learnedPoints };
+      const profileResult = await updateProfileWithPractice(basePoints, profile);
+      const nextBadgeIds = checkBadges(
+        buildStatsState(nextProgress, quizResults, profileResult.profile),
+        profileResult.profile,
+      );
+      queueBadgeUnlocks(previousBadgeIds, nextBadgeIds);
+
+      return { awardedPoints: profileResult.awardedPoints, learnedPoints: basePoints };
     }
 
     const client = assertSupabase();
@@ -319,6 +471,8 @@ export function UserProvider({ children }) {
           module_id: moduleId,
           phrase_id: phraseId,
           status,
+          srs_level: nextLevel,
+          next_review_date: nextReviewDate,
         },
         {
           onConflict: "user_id,module_id,phrase_id",
@@ -331,15 +485,23 @@ export function UserProvider({ children }) {
       throw error;
     }
 
-    setUserProgress((current) => {
-      const next = current.filter(
+    const normalizedRow = normalizeProgressEntry(data);
+    const nextProgress = [
+      ...normalizedProgress.filter(
         (entry) => !(entry.module_id === moduleId && entry.phrase_id === phraseId),
-      );
-      return [...next, data];
-    });
+      ),
+      normalizedRow,
+    ];
+    setUserProgress(nextProgress);
 
-    const awardedPoints = await updateProfileWithPractice(learnedPoints);
-    return { awardedPoints, learnedPoints };
+    const profileResult = await updateProfileWithPractice(basePoints, profile);
+    const nextBadgeIds = checkBadges(
+      buildStatsState(nextProgress, quizResults, profileResult.profile),
+      profileResult.profile,
+    );
+    queueBadgeUnlocks(previousBadgeIds, nextBadgeIds);
+
+    return { awardedPoints: profileResult.awardedPoints, learnedPoints: basePoints };
   }
 
   async function recordQuizResult(moduleId, score, totalQuestions) {
@@ -355,6 +517,11 @@ export function UserProvider({ children }) {
     } else if (percentage >= 70) {
       quizPoints = 30;
     }
+
+    const previousBadgeIds = checkBadges(
+      buildStatsState(normalizedProgress, quizResults, profile),
+      profile,
+    );
 
     if (!isSupabaseConfigured) {
       const db = readDemoDb();
@@ -372,9 +539,15 @@ export function UserProvider({ children }) {
       writeDemoDb(db);
       setQuizResults(nextResults);
 
-      const awardedPoints = await updateProfileWithPractice(quizPoints);
+      const profileResult = await updateProfileWithPractice(quizPoints, profile);
+      const nextBadgeIds = checkBadges(
+        buildStatsState(normalizedProgress, nextResults, profileResult.profile),
+        profileResult.profile,
+      );
+      queueBadgeUnlocks(previousBadgeIds, nextBadgeIds);
+
       return {
-        awardedPoints,
+        awardedPoints: profileResult.awardedPoints,
         quizPoints,
         percentage,
       };
@@ -397,14 +570,25 @@ export function UserProvider({ children }) {
       throw error;
     }
 
-    setQuizResults((current) => [data, ...current]);
-    const awardedPoints = await updateProfileWithPractice(quizPoints);
+    const nextResults = [data, ...quizResults];
+    setQuizResults(nextResults);
+    const profileResult = await updateProfileWithPractice(quizPoints, profile);
+    const nextBadgeIds = checkBadges(
+      buildStatsState(normalizedProgress, nextResults, profileResult.profile),
+      profileResult.profile,
+    );
+    queueBadgeUnlocks(previousBadgeIds, nextBadgeIds);
 
     return {
-      awardedPoints,
+      awardedPoints: profileResult.awardedPoints,
       quizPoints,
       percentage,
     };
+  }
+
+  function dismissBadgeToast() {
+    setBadgeQueue((current) => current.slice(1));
+    setActiveBadgeToast(null);
   }
 
   function completeOnboarding() {
@@ -432,7 +616,7 @@ export function UserProvider({ children }) {
 
   const value = {
     profile,
-    userProgress,
+    userProgress: normalizedProgress,
     quizResults,
     moduleProgress,
     stats,
@@ -440,9 +624,13 @@ export function UserProvider({ children }) {
     theme,
     streakReminderEnabled,
     onboardingComplete,
+    dueReviewItems,
+    nextReviewDate,
+    activeBadgeToast,
     refreshAll,
     markPhraseStatus,
     recordQuizResult,
+    dismissBadgeToast,
     completeOnboarding,
     toggleStreakReminder,
     toggleTheme,

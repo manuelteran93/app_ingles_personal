@@ -1,4 +1,6 @@
-﻿export const MODULE_META = {
+import { phrasalVerbExplanations } from "./phrasalVerbExplanations";
+
+export const MODULE_META = {
   1: {
     id: 1,
     title: "Básico",
@@ -25,7 +27,7 @@
   },
 };
 
-export const phrasalVerbsByModule = {
+const rawPhrasalVerbsByModule = {
   1: [
     {
       id: "wake-up",
@@ -513,6 +515,18 @@ export const phrasalVerbsByModule = {
     },
   ],
 };
+
+export const phrasalVerbsByModule = Object.fromEntries(
+  Object.entries(rawPhrasalVerbsByModule).map(([moduleId, phrases]) => [
+    Number(moduleId),
+    phrases.map((phrase) => ({
+      ...phrase,
+      explanation:
+        phrasalVerbExplanations[phrase.id] ??
+        "Se usa en contextos cotidianos para expresar esta acción o idea de forma natural en inglés.",
+    })),
+  ]),
+);
 
 export const modules = Object.values(MODULE_META).map((meta) => ({
   ...meta,

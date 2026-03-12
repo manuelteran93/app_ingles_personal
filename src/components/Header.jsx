@@ -1,4 +1,4 @@
-﻿import { useLocation } from "react-router-dom";
+﻿import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useUser } from "../contexts/UserContext";
 import StreakBadge from "./StreakBadge";
@@ -6,15 +6,23 @@ import StreakBadge from "./StreakBadge";
 const titles = {
   "/home": "Tu progreso",
   "/modules": "Módulos",
+  "/review": "Repaso diario",
+  "/chat": "Chat con IA",
   "/ranking": "Ranking social",
   "/profile": "Perfil",
 };
 
 export default function Header() {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut, isGuestUser } = useAuth();
   const { profile, theme, toggleTheme } = useUser();
   const title = titles[location.pathname] ?? "Lección";
+
+  async function handleBackToStart() {
+    await signOut();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -38,6 +46,15 @@ export default function Header() {
         >
           {theme === "light" ? "Modo oscuro" : "Modo claro"}
         </button>
+        {isGuestUser ? (
+          <button
+            type="button"
+            onClick={handleBackToStart}
+            className="pill-button border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+          >
+            Volver al inicio
+          </button>
+        ) : null}
       </div>
     </header>
   );

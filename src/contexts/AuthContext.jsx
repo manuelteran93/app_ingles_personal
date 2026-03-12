@@ -291,6 +291,7 @@ export function AuthProvider({ children }) {
     user,
     loading,
     isSupabaseConfigured,
+    isGuestUser: user?.app_metadata?.provider === "guest",
     authMode: isSupabaseConfigured ? "supabase" : "demo",
     signInWithEmail,
     signUpWithEmail,
@@ -311,3 +312,4 @@ export function useAuth() {
 
   return context;
 }
+

@@ -25,6 +25,8 @@ export default {
         float: "float 4s ease-in-out infinite",
         flame: "flame 1.3s ease-in-out infinite",
         "pulse-soft": "pulseSoft 1.6s ease-in-out infinite",
+        "badge-pop": "badgePop 0.55s ease-out",
+        "slide-in-right": "slideInRight 0.35s ease-out",
       },
       keyframes: {
         float: {
@@ -38,6 +40,15 @@ export default {
         pulseSoft: {
           "0%, 100%": { opacity: "0.65" },
           "50%": { opacity: "1" },
+        },
+        badgePop: {
+          "0%": { transform: "scale(0.8)" },
+          "60%": { transform: "scale(1.1)" },
+          "100%": { transform: "scale(1)" },
+        },
+        slideInRight: {
+          "0%": { transform: "translateX(24px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
         },
       },
     },

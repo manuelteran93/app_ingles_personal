@@ -54,6 +54,7 @@ export function createQuizQuestions(phrases, questionCount = 10) {
       prompt: askMeaning ? phrase.phrase : phrase.meaning,
       supportText: askMeaning ? phrase.example : phrase.exampleTranslation,
       correctAnswer: askMeaning ? phrase.meaning : phrase.phrase,
+      explanation: phrase.explanation,
       options,
     };
   });

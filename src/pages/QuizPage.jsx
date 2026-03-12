@@ -169,6 +169,7 @@ export default function QuizPage() {
             revealAnswer={revealAnswer}
             onAnswer={handleAnswer}
             disabled={saving}
+            explanation={currentQuestion.explanation}
           />
 
           <div className="glass-card p-5">

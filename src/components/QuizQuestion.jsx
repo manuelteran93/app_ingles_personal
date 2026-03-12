@@ -4,7 +4,10 @@
   revealAnswer,
   onAnswer,
   disabled,
+  explanation,
 }) {
+  const answeredIncorrectly = revealAnswer && selectedOption && selectedOption !== question.correctAnswer;
+
   return (
     <div className="glass-card p-6 sm:p-8">
       <div className="mb-6">
@@ -44,6 +47,15 @@
           );
         })}
       </div>
+
+      {answeredIncorrectly && explanation ? (
+        <div className="mt-5 border-l-4 border-[#FFC800] bg-[#FFF9E6] px-4 py-4 text-slate-800 opacity-100 transition-opacity duration-300 dark:bg-[#3B3318] dark:text-amber-100">
+          <p className="text-sm font-bold leading-relaxed">
+            <span className="mr-2">💡</span>
+            {explanation}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

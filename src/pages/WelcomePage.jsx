@@ -1,13 +1,20 @@
 ﻿import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { useUser } from "../contexts/UserContext";
 
 export default function WelcomePage() {
   const navigate = useNavigate();
+  const { isGuestUser, signOut } = useAuth();
   const { completeOnboarding } = useUser();
 
   function handleContinue() {
     completeOnboarding();
     navigate("/home", { replace: true });
+  }
+
+  async function handleBackToStart() {
+    await signOut();
+    navigate("/login", { replace: true });
   }
 
   return (
@@ -22,13 +29,24 @@ export default function WelcomePage() {
             <p className="mt-5 text-lg font-semibold text-slate-500 dark:text-slate-300">
               Aquí practicarás phrasal verbs, escucharás pronunciación real y ganarás puntos cada vez que avances.
             </p>
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="pill-button mt-8 bg-brand-green px-6 py-3 text-slate-950 hover:brightness-110"
-            >
-              Empezar ahora
-            </button>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="pill-button bg-brand-green px-6 py-3 text-slate-950 hover:brightness-110"
+              >
+                Empezar ahora
+              </button>
+              {isGuestUser ? (
+                <button
+                  type="button"
+                  onClick={handleBackToStart}
+                  className="pill-button border border-slate-200 bg-white px-6 py-3 text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                >
+                  Volver al inicio
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-4">
