@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { modules } from "../data/phrasalVerbs";
-import { useUser } from "../contexts/UserContext";
+﻿import { Link } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar";
+import { useUser } from "../contexts/UserContext";
+import { modules } from "../data/phrasalVerbs";
 
 function SectionDivider({ title }) {
   return (
@@ -34,7 +34,7 @@ function ModuleGrid({ items, moduleProgress }) {
                 </span>
               </div>
 
-              <h3 className="mt-5 text-3xl font-black text-slate-900 dark:text-white">{`M\u00F3dulo ${module.id}`}</h3>
+              <h3 className="mt-5 text-3xl font-black text-slate-900 dark:text-white">{`Módulo ${module.id}`}</h3>
               <p className="mt-2 text-lg font-bold text-slate-700 dark:text-slate-100">{module.title}</p>
               <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">{module.description}</p>
               <div className="mt-5">
@@ -76,8 +76,10 @@ function ModuleGrid({ items, moduleProgress }) {
 
 export default function ModulePage() {
   const { moduleProgress } = useUser();
-  const levelModules = modules.filter((module) => module.thematic !== true);
-  const thematicModules = modules.filter((module) => module.thematic === true);
+  const sortedModules = [...modules].sort((a, b) => a.id - b.id);
+  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
+  const b2Modules = sortedModules.filter((module) => module.id >= 10);
 
   return (
     <section className="space-y-6">
@@ -85,18 +87,23 @@ export default function ModulePage() {
         <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Biblioteca de aprendizaje</p>
         <h2 className="mt-3 text-4xl font-black text-slate-900 dark:text-white">Elige tu siguiente reto</h2>
         <p className="mt-4 max-w-3xl text-base font-semibold text-slate-500 dark:text-slate-300">
-          {"Cada m\u00F3dulo incluye 20 phrasal verbs, tarjetas con audio y un quiz final de 10 preguntas aleatorias."}
+          Cada módulo incluye 20 phrasal verbs, tarjetas con audio y un quiz final de 10 preguntas aleatorias.
         </p>
       </div>
 
       <div className="space-y-6">
         <SectionDivider title="Por nivel" />
-        <ModuleGrid items={levelModules} moduleProgress={moduleProgress} />
+        <ModuleGrid items={coreModules} moduleProgress={moduleProgress} />
       </div>
 
       <div className="space-y-6">
         <SectionDivider title="Por tema" />
         <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} />
+      </div>
+
+      <div className="space-y-6">
+        <SectionDivider title="Camino B2" />
+        <ModuleGrid items={b2Modules} moduleProgress={moduleProgress} />
       </div>
     </section>
   );
