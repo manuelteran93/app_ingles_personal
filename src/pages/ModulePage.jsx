@@ -3,11 +3,22 @@ import ProgressBar from "../components/ProgressBar";
 import { useUser } from "../contexts/UserContext";
 import { modules } from "../data/phrasalVerbs";
 
-function ModuleGrid({ items, moduleProgress }) {
+function SectionDivider({ title }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+      <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">{title}</span>
+      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+    </div>
+  );
+}
+
+function ModuleGrid({ items, moduleProgress, thematic = false }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {items.map((module) => {
+      {items.map((module, index) => {
         const progress = moduleProgress[module.id] ?? { learned: 0, total: module.phrases.length, percentage: 0 };
+        const label = thematic ? `Temático ${index + 1}` : `Módulo ${index + 1}`;
 
         return (
           <article key={module.id} className="glass-card overflow-hidden">
@@ -24,7 +35,7 @@ function ModuleGrid({ items, moduleProgress }) {
                 </span>
               </div>
 
-              <h3 className="mt-5 text-3xl font-black text-slate-900 dark:text-white">{`Módulo ${module.id}`}</h3>
+              <h3 className="mt-5 text-3xl font-black text-slate-900 dark:text-white">{label}</h3>
               <p className="mt-2 text-lg font-bold text-slate-700 dark:text-slate-100">{module.title}</p>
               <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">{module.description}</p>
               <div className="mt-5">
@@ -67,6 +78,8 @@ function ModuleGrid({ items, moduleProgress }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
+  const normalModules = sortedModules.filter((module) => module.thematic !== true);
+  const thematicModules = sortedModules.filter((module) => module.thematic === true);
 
   return (
     <section className="space-y-6">
@@ -78,7 +91,15 @@ export default function ModulePage() {
         </p>
       </div>
 
-      <ModuleGrid items={sortedModules} moduleProgress={moduleProgress} />
+      <div className="space-y-6">
+        <SectionDivider title="Ruta principal" />
+        <ModuleGrid items={normalModules} moduleProgress={moduleProgress} />
+      </div>
+
+      <div className="space-y-6">
+        <SectionDivider title="Temáticos" />
+        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} thematic />
+      </div>
     </section>
   );
 }

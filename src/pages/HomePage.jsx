@@ -5,7 +5,7 @@ import { useUser } from "../contexts/UserContext";
 import { modules } from "../data/phrasalVerbs";
 import { getGreeting } from "../utils/date";
 
-function ModuleCard({ module, progress }) {
+function ModuleCard({ module, progress, label }) {
   return (
     <article className="glass-card p-5">
       <div
@@ -14,9 +14,7 @@ function ModuleCard({ module, progress }) {
       >
         {module.emoji}
       </div>
-      <h4 className="mt-5 text-2xl font-black text-slate-900 dark:text-white">
-        {`Módulo ${module.id} · ${module.title}`}
-      </h4>
+      <h4 className="mt-5 text-2xl font-black text-slate-900 dark:text-white">{label}</h4>
       <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">{module.description}</p>
       <div className="mt-5">
         <ProgressBar value={progress.percentage} color={module.color} showLabel />
@@ -35,10 +33,44 @@ function ModuleCard({ module, progress }) {
   );
 }
 
+function ModuleSection({ badge, items, moduleProgress, thematic = false }) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-6 first:mt-0">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="rounded-full bg-brand-yellow/20 px-3 py-1 text-xs font-black uppercase tracking-[0.25em] text-brand-yellow">
+          {badge}
+        </span>
+        <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        {items.map((module, index) => {
+          const progress = moduleProgress[module.id] ?? {
+            percentage: 0,
+            learned: 0,
+            total: module.phrases.length,
+          };
+          const label = thematic
+            ? `Temático ${index + 1} · ${module.title}`
+            : `Módulo ${index + 1} · ${module.title}`;
+
+          return <ModuleCard key={module.id} module={module} progress={progress} label={label} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { profile, moduleProgress, stats, streakReminderEnabled } = useUser();
   const greeting = useMemo(() => getGreeting(), []);
   const sortedModules = useMemo(() => [...modules].sort((a, b) => a.id - b.id), []);
+  const normalModules = sortedModules.filter((module) => module.thematic !== true);
+  const thematicModules = sortedModules.filter((module) => module.thematic === true);
 
   return (
     <section className="space-y-6">
@@ -109,17 +141,8 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-3">
-          {sortedModules.map((module) => {
-            const progress = moduleProgress[module.id] ?? {
-              percentage: 0,
-              learned: 0,
-              total: module.phrases.length,
-            };
-
-            return <ModuleCard key={module.id} module={module} progress={progress} />;
-          })}
-        </div>
+        <ModuleSection badge="Ruta principal" items={normalModules} moduleProgress={moduleProgress} />
+        <ModuleSection badge="Temáticos" items={thematicModules} moduleProgress={moduleProgress} thematic />
       </div>
     </section>
   );
