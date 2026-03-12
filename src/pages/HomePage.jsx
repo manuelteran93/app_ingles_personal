@@ -35,42 +35,10 @@ function ModuleCard({ module, progress }) {
   );
 }
 
-function ModuleSection({ title, badge, items, moduleProgress }) {
-  if (!items.length) {
-    return null;
-  }
-
-  return (
-    <div className="mt-6 first:mt-0">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="rounded-full bg-brand-yellow/20 px-3 py-1 text-xs font-black uppercase tracking-[0.25em] text-brand-yellow">
-          {badge}
-        </span>
-        <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-3">
-        {items.map((module) => {
-          const progress = moduleProgress[module.id] ?? {
-            percentage: 0,
-            learned: 0,
-            total: module.phrases.length,
-          };
-
-          return <ModuleCard key={module.id} module={module} progress={progress} />;
-        })}
-      </div>
-    </div>
-  );
-}
-
 export default function HomePage() {
   const { profile, moduleProgress, stats, streakReminderEnabled } = useUser();
   const greeting = useMemo(() => getGreeting(), []);
   const sortedModules = useMemo(() => [...modules].sort((a, b) => a.id - b.id), []);
-  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
-  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10);
 
   return (
     <section className="space-y-6">
@@ -141,9 +109,17 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <ModuleSection title="Base" badge="Por nivel" items={coreModules} moduleProgress={moduleProgress} />
-        <ModuleSection title="Temáticos" badge="Temáticos" items={thematicModules} moduleProgress={moduleProgress} />
-        <ModuleSection title="B2" badge="Camino B2" items={b2Modules} moduleProgress={moduleProgress} />
+        <div className="grid gap-5 lg:grid-cols-3">
+          {sortedModules.map((module) => {
+            const progress = moduleProgress[module.id] ?? {
+              percentage: 0,
+              learned: 0,
+              total: module.phrases.length,
+            };
+
+            return <ModuleCard key={module.id} module={module} progress={progress} />;
+          })}
+        </div>
       </div>
     </section>
   );

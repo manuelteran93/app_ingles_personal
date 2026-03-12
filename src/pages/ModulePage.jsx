@@ -3,16 +3,6 @@ import ProgressBar from "../components/ProgressBar";
 import { useUser } from "../contexts/UserContext";
 import { modules } from "../data/phrasalVerbs";
 
-function SectionDivider({ title }) {
-  return (
-    <div className="flex items-center gap-4">
-      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-      <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">{title}</span>
-      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-    </div>
-  );
-}
-
 function ModuleGrid({ items, moduleProgress }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -77,9 +67,6 @@ function ModuleGrid({ items, moduleProgress }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
-  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10);
 
   return (
     <section className="space-y-6">
@@ -91,20 +78,7 @@ export default function ModulePage() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        <SectionDivider title="Por nivel" />
-        <ModuleGrid items={coreModules} moduleProgress={moduleProgress} />
-      </div>
-
-      <div className="space-y-6">
-        <SectionDivider title="Por tema" />
-        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} />
-      </div>
-
-      <div className="space-y-6">
-        <SectionDivider title="Camino B2" />
-        <ModuleGrid items={b2Modules} moduleProgress={moduleProgress} />
-      </div>
+      <ModuleGrid items={sortedModules} moduleProgress={moduleProgress} />
     </section>
   );
 }

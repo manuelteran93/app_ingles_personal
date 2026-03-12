@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "english-quest-v2";
+﻿const CACHE_NAME = "english-quest-v3";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -18,14 +18,16 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name)),
-      ),
+      Promise.all(cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))),
     ),
   );
   self.clients.claim();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 function shouldBypassCache(url) {
@@ -51,10 +53,13 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put("/index.html", responseToCache);
-          });
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put("/index.html", responseToCache);
+            });
+          }
+
           return response;
         })
         .catch(async () => {
