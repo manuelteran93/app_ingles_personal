@@ -1,10 +1,11 @@
 ﻿import { Suspense, lazy } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
-import { useAuth } from "./contexts/AuthContext";
-import { useUser } from "./contexts/UserContext";
 import BadgeUnlockToast from "./components/BadgeUnlockToast";
 import BottomNav from "./components/BottomNav";
 import Header from "./components/Header";
+import InstallBanner from "./components/InstallBanner";
+import { useAuth } from "./contexts/AuthContext";
+import { useUser } from "./contexts/UserContext";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LessonView = lazy(() => import("./pages/LessonView"));
@@ -84,6 +85,7 @@ function AppLayout() {
           <Outlet />
         </main>
         <BottomNav />
+        <InstallBanner />
         <BadgeUnlockToast badge={activeBadgeToast} />
       </div>
     </div>

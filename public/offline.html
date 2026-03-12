@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sin conexión — English Quest</title>
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F7F7F7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 24px;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      padding: 48px 32px;
+      max-width: 400px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .emoji { font-size: 64px; margin-bottom: 16px; }
+    h1 { color: #1e293b; font-size: 28px; margin: 0 0 12px; }
+    p { color: #64748b; font-size: 16px; margin: 0 0 24px; }
+    button {
+      background: #58CC02;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="emoji">📶</div>
+    <h1>Sin conexión</h1>
+    <p>Parece que no tienes internet. Conéctate para seguir practicando inglés.</p>
+    <button onclick="window.location.reload()">Reintentar</button>
+  </div>
+</body>
+</html>
