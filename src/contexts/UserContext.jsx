@@ -504,13 +504,14 @@ export function UserProvider({ children }) {
     return { awardedPoints: profileResult.awardedPoints, learnedPoints: basePoints };
   }
 
-  async function recordQuizResult(moduleId, score, totalQuestions) {
+  async function recordQuizResult(moduleId, score, totalQuestions, options = {}) {
     if (!user) {
       return { awardedPoints: 0 };
     }
 
     const percentage = Math.round((score / totalQuestions) * 100);
     let quizPoints = 10;
+    const bonusPoints = options.bonusPoints ?? 0;
 
     if (percentage === 100) {
       quizPoints = 50;
@@ -518,6 +519,7 @@ export function UserProvider({ children }) {
       quizPoints = 30;
     }
 
+    const totalPointsEarned = quizPoints + bonusPoints;
     const previousBadgeIds = checkBadges(
       buildStatsState(normalizedProgress, quizResults, profile),
       profile,
@@ -531,7 +533,7 @@ export function UserProvider({ children }) {
         module_id: moduleId,
         score,
         total_questions: totalQuestions,
-        points_earned: quizPoints,
+        points_earned: totalPointsEarned,
         completed_at: new Date().toISOString(),
       };
       const nextResults = [nextResult, ...(db.quizzes[user.id] ?? [])];
@@ -539,7 +541,7 @@ export function UserProvider({ children }) {
       writeDemoDb(db);
       setQuizResults(nextResults);
 
-      const profileResult = await updateProfileWithPractice(quizPoints, profile);
+      const profileResult = await updateProfileWithPractice(totalPointsEarned, profile);
       const nextBadgeIds = checkBadges(
         buildStatsState(normalizedProgress, nextResults, profileResult.profile),
         profileResult.profile,
@@ -548,7 +550,8 @@ export function UserProvider({ children }) {
 
       return {
         awardedPoints: profileResult.awardedPoints,
-        quizPoints,
+        quizPoints: totalPointsEarned,
+        bonusPoints,
         percentage,
       };
     }
@@ -561,7 +564,7 @@ export function UserProvider({ children }) {
         module_id: moduleId,
         score,
         total_questions: totalQuestions,
-        points_earned: quizPoints,
+        points_earned: totalPointsEarned,
       })
       .select("*")
       .single();
@@ -572,7 +575,7 @@ export function UserProvider({ children }) {
 
     const nextResults = [data, ...quizResults];
     setQuizResults(nextResults);
-    const profileResult = await updateProfileWithPractice(quizPoints, profile);
+    const profileResult = await updateProfileWithPractice(totalPointsEarned, profile);
     const nextBadgeIds = checkBadges(
       buildStatsState(normalizedProgress, nextResults, profileResult.profile),
       profileResult.profile,
@@ -581,7 +584,8 @@ export function UserProvider({ children }) {
 
     return {
       awardedPoints: profileResult.awardedPoints,
-      quizPoints,
+      quizPoints: totalPointsEarned,
+      bonusPoints,
       percentage,
     };
   }
@@ -648,3 +652,5 @@ export function useUser() {
 
   return context;
 }
+
+
