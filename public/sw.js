@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "english-quest-v1";
+﻿const CACHE_NAME = "english-quest-v2";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -10,36 +10,62 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }),
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)),
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name)),
-      );
-    }),
+      ),
+    ),
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-
-  const url = new URL(event.request.url);
-  if (
+function shouldBypassCache(url) {
+  return (
     url.hostname.includes("supabase") ||
     url.hostname.includes("groq") ||
     url.hostname.includes("unsplash") ||
     url.hostname.includes("googleapis")
-  ) {
+  );
+}
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+  if (shouldBypassCache(url)) {
+    return;
+  }
+
+  if (event.request.mode === "navigate" || event.request.destination === "document") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put("/index.html", responseToCache);
+          });
+          return response;
+        })
+        .catch(async () => {
+          const cachedIndex = await caches.match("/index.html");
+          if (cachedIndex) {
+            return cachedIndex;
+          }
+
+          return caches.match("/offline.html");
+        }),
+    );
     return;
   }
 
@@ -59,13 +85,10 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
+
           return response;
         })
-        .catch(() => {
-          if (event.request.destination === "document") {
-            return caches.match("/offline.html");
-          }
-        });
+        .catch(() => caches.match("/offline.html"));
     }),
   );
 });
