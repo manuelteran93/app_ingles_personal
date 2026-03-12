@@ -1,4 +1,4 @@
-import confetti from "canvas-confetti";
+﻿import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PhraseCard from "../components/PhraseCard";
@@ -31,7 +31,7 @@ export default function ReviewPage() {
 
     setSessionItems(dueReviewItems);
     initializedRef.current = true;
-  }, [dueReviewItems, loading]);
+  }, [dueReviewItems, loading, profile]);
 
   const currentItem = sessionItems[currentIndex] ?? null;
   const nextReviewLabel = useMemo(() => formatReviewDate(nextReviewDate), [nextReviewDate]);

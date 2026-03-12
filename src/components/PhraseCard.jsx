@@ -2,6 +2,18 @@
 import ProgressBar from "./ProgressBar";
 import { phraseExamples } from "../data/phraseExamples";
 
+const IPA_PATTERN = /^\/[A-Za-z\u00E6\u0251\u0252\u0254\u0259\u025C\u026A\u028A\u0283\u0292\u014B\u00F0\u03B8\u02C8\u02CC\u02D0.()\-\s]+\/$/u;
+
+function getDisplayPronunciation(phrase) {
+  const ipa = phrase?.ipa?.trim();
+
+  if (ipa && ipa.length <= 40 && IPA_PATTERN.test(ipa)) {
+    return ipa;
+  }
+
+  return "Escucha el audio y usa las oraciones de ejemplo para practicar la pronunciación.";
+}
+
 export default function PhraseCard({
   phrase,
   moduleColor,
@@ -11,6 +23,7 @@ export default function PhraseCard({
   currentStatus,
   disabled,
 }) {
+  const displayPronunciation = getDisplayPronunciation(phrase);
   const examples =
     phraseExamples[phrase.id] ?? [
       {
@@ -36,7 +49,7 @@ export default function PhraseCard({
         <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[24px] bg-slate-50 p-5 dark:bg-slate-800/70">
             <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Pronunciación base</p>
-            <p className="mt-3 text-2xl font-bold text-slate-700 dark:text-slate-100">{phrase.ipa}</p>
+            <p className="mt-3 text-2xl font-bold text-slate-700 dark:text-slate-100">{displayPronunciation}</p>
             <p className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-slate-400">Significado</p>
             <p className="mt-3 text-xl font-bold text-slate-700 dark:text-slate-100">{phrase.meaning}</p>
           </div>
