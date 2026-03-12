@@ -13,12 +13,12 @@ function SectionDivider({ title }) {
   );
 }
 
-function ModuleGrid({ items, moduleProgress, thematic = false }) {
+function ModuleGrid({ items, moduleProgress, prefix }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       {items.map((module, index) => {
         const progress = moduleProgress[module.id] ?? { learned: 0, total: module.phrases.length, percentage: 0 };
-        const label = thematic ? `Temático ${index + 1}` : `Módulo ${index + 1}`;
+        const label = `${prefix} ${index + 1}`;
 
         return (
           <article key={module.id} className="glass-card overflow-hidden">
@@ -78,8 +78,9 @@ function ModuleGrid({ items, moduleProgress, thematic = false }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const normalModules = sortedModules.filter((module) => module.thematic !== true);
-  const thematicModules = sortedModules.filter((module) => module.thematic === true);
+  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
+  const b2Modules = sortedModules.filter((module) => module.id >= 10);
 
   return (
     <section className="space-y-6">
@@ -93,12 +94,17 @@ export default function ModulePage() {
 
       <div className="space-y-6">
         <SectionDivider title="Ruta principal" />
-        <ModuleGrid items={normalModules} moduleProgress={moduleProgress} />
+        <ModuleGrid items={coreModules} moduleProgress={moduleProgress} prefix="Módulo" />
       </div>
 
       <div className="space-y-6">
         <SectionDivider title="Temáticos" />
-        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} thematic />
+        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} prefix="Temático" />
+      </div>
+
+      <div className="space-y-6">
+        <SectionDivider title="Camino B2" />
+        <ModuleGrid items={b2Modules} moduleProgress={moduleProgress} prefix="B2" />
       </div>
     </section>
   );

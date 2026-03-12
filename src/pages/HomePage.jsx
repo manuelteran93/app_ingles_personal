@@ -33,7 +33,7 @@ function ModuleCard({ module, progress, label }) {
   );
 }
 
-function ModuleSection({ badge, items, moduleProgress, thematic = false }) {
+function ModuleSection({ badge, items, moduleProgress, prefix }) {
   if (!items.length) {
     return null;
   }
@@ -54,9 +54,7 @@ function ModuleSection({ badge, items, moduleProgress, thematic = false }) {
             learned: 0,
             total: module.phrases.length,
           };
-          const label = thematic
-            ? `Temático ${index + 1} · ${module.title}`
-            : `Módulo ${index + 1} · ${module.title}`;
+          const label = `${prefix} ${index + 1} · ${module.title}`;
 
           return <ModuleCard key={module.id} module={module} progress={progress} label={label} />;
         })}
@@ -69,8 +67,9 @@ export default function HomePage() {
   const { profile, moduleProgress, stats, streakReminderEnabled } = useUser();
   const greeting = useMemo(() => getGreeting(), []);
   const sortedModules = useMemo(() => [...modules].sort((a, b) => a.id - b.id), []);
-  const normalModules = sortedModules.filter((module) => module.thematic !== true);
-  const thematicModules = sortedModules.filter((module) => module.thematic === true);
+  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
+  const b2Modules = sortedModules.filter((module) => module.id >= 10);
 
   return (
     <section className="space-y-6">
@@ -141,8 +140,9 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <ModuleSection badge="Ruta principal" items={normalModules} moduleProgress={moduleProgress} />
-        <ModuleSection badge="Temáticos" items={thematicModules} moduleProgress={moduleProgress} thematic />
+        <ModuleSection badge="Ruta principal" items={coreModules} moduleProgress={moduleProgress} prefix="Módulo" />
+        <ModuleSection badge="Temáticos" items={thematicModules} moduleProgress={moduleProgress} prefix="Temático" />
+        <ModuleSection badge="Camino B2" items={b2Modules} moduleProgress={moduleProgress} prefix="B2" />
       </div>
     </section>
   );
