@@ -3,12 +3,19 @@ import ProgressBar from "../components/ProgressBar";
 import { useUser } from "../contexts/UserContext";
 import { modules } from "../data/phrasalVerbs";
 
-function SectionDivider({ title }) {
+function SectionDivider({ badge, title, description }) {
   return (
-    <div className="flex items-center gap-4">
-      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-      <span className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">{title}</span>
-      <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+    <div className="space-y-3">
+      <div className="flex items-center gap-4">
+        <span className="rounded-full bg-brand-yellow/20 px-3 py-1 text-xs font-black uppercase tracking-[0.25em] text-brand-yellow">
+          {badge}
+        </span>
+        <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+      </div>
+      <div>
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white">{title}</h3>
+        <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-300">{description}</p>
+      </div>
     </div>
   );
 }
@@ -35,8 +42,8 @@ function ModuleGrid({ items, moduleProgress, prefix }) {
                 </span>
               </div>
 
-              <h3 className="mt-5 text-3xl font-black text-slate-900 dark:text-white">{label}</h3>
-              <p className="mt-2 text-lg font-bold text-slate-700 dark:text-slate-100">{module.title}</p>
+              <h4 className="mt-5 text-sm font-black uppercase tracking-[0.3em] text-slate-400">{label}</h4>
+              <p className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{module.title}</p>
               <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">{module.description}</p>
               <div className="mt-5">
                 <ProgressBar value={progress.percentage} color={module.color} showLabel />
@@ -78,9 +85,9 @@ function ModuleGrid({ items, moduleProgress, prefix }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
-  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10);
+  const foundationModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const thematicModules = sortedModules.filter((module) => module.thematic === true);
+  const b2Modules = sortedModules.filter((module) => module.id >= 10 && module.thematic !== true);
 
   return (
     <section className="space-y-6">
@@ -88,22 +95,34 @@ export default function ModulePage() {
         <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Biblioteca de aprendizaje</p>
         <h2 className="mt-3 text-4xl font-black text-slate-900 dark:text-white">Elige tu siguiente reto</h2>
         <p className="mt-4 max-w-3xl text-base font-semibold text-slate-500 dark:text-slate-300">
-          Cada módulo incluye 20 phrasal verbs, tarjetas con audio y un quiz final de 10 preguntas aleatorias.
+          Cada modulo incluye 20 phrasal verbs, tarjetas con audio y un quiz final de 10 preguntas aleatorias.
         </p>
       </div>
 
       <div className="space-y-6">
-        <SectionDivider title="Ruta principal" />
-        <ModuleGrid items={coreModules} moduleProgress={moduleProgress} prefix="Módulo" />
+        <SectionDivider
+          badge="Estudio"
+          title="Ruta principal"
+          description="Aqui van los modulos base para construir el idioma sin mezclar los tematicos."
+        />
+        <ModuleGrid items={foundationModules} moduleProgress={moduleProgress} prefix="Modulo" />
       </div>
 
       <div className="space-y-6">
-        <SectionDivider title="Temáticos" />
-        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} prefix="Temático" />
+        <SectionDivider
+          badge="Tematicos"
+          title="Modulos tematicos"
+          description="Estos modulos practican contextos concretos como trabajo, viajes, salud o dinero."
+        />
+        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} prefix="Tematico" />
       </div>
 
       <div className="space-y-6">
-        <SectionDivider title="Camino B2" />
+        <SectionDivider
+          badge="B2"
+          title="Camino B2"
+          description="Cuando termines la base, sigue con los modulos avanzados orientados a nivel B2."
+        />
         <ModuleGrid items={b2Modules} moduleProgress={moduleProgress} prefix="B2" />
       </div>
     </section>

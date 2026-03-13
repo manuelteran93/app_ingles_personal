@@ -27,25 +27,35 @@ function ModuleCard({ module, progress, label }) {
         className="pill-button mt-5 w-full text-white hover:brightness-110"
         style={{ backgroundColor: module.color }}
       >
-        Continuar lección
+        Continuar leccion
       </Link>
     </article>
   );
 }
 
-function ModuleSection({ badge, items, moduleProgress, prefix }) {
-  if (!items.length) {
-    return null;
-  }
-
+function SectionHeader({ badge, title, description }) {
   return (
-    <div className="mt-6 first:mt-0">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="mb-4">
+      <div className="flex items-center gap-3">
         <span className="rounded-full bg-brand-yellow/20 px-3 py-1 text-xs font-black uppercase tracking-[0.25em] text-brand-yellow">
           {badge}
         </span>
         <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
       </div>
+      <h4 className="mt-3 text-xl font-black text-slate-900 dark:text-white">{title}</h4>
+      <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-300">{description}</p>
+    </div>
+  );
+}
+
+function ModuleSection({ badge, title, description, items, moduleProgress, prefix }) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-8 first:mt-0">
+      <SectionHeader badge={badge} title={title} description={description} />
 
       <div className="grid gap-5 lg:grid-cols-3">
         {items.map((module, index) => {
@@ -67,9 +77,9 @@ export default function HomePage() {
   const { profile, moduleProgress, stats, streakReminderEnabled } = useUser();
   const greeting = useMemo(() => getGreeting(), []);
   const sortedModules = useMemo(() => [...modules].sort((a, b) => a.id - b.id), []);
-  const coreModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
-  const thematicModules = sortedModules.filter((module) => module.id >= 4 && module.id <= 9);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10);
+  const foundationModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const thematicModules = sortedModules.filter((module) => module.thematic === true);
+  const b2Modules = sortedModules.filter((module) => module.id >= 10 && module.thematic !== true);
 
   return (
     <section className="space-y-6">
@@ -78,14 +88,14 @@ export default function HomePage() {
           <div className="bg-gradient-to-br from-brand-green via-[#7bdd2e] to-brand-blue p-6 text-white sm:p-8">
             <p className="text-sm font-black uppercase tracking-[0.35em] text-white/80">{greeting}</p>
             <h2 className="mt-3 text-balance text-4xl font-black sm:text-5xl">
-              {profile?.username ? `Hola, ${profile.username}` : "Tu aventura en inglés sigue hoy"}
+              {profile?.username ? `Hola, ${profile.username}` : "Tu aventura en ingles sigue hoy"}
             </h2>
             <p className="mt-4 max-w-xl text-base font-semibold text-white/90">
-              Mantén tu racha activa, suma puntos y domina nuevos phrasal verbs todos los días.
+              Manten tu racha activa, suma puntos y domina nuevos phrasal verbs todos los dias.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/modules" className="pill-button bg-white text-slate-900 hover:bg-slate-100">
-                Ver módulos
+                Ver modulos
               </Link>
               <Link to="/ranking" className="pill-button border border-white/40 text-white hover:bg-white/10">
                 Ir al ranking
@@ -120,11 +130,11 @@ export default function HomePage() {
           <p className="mt-3 text-3xl font-black text-slate-900 dark:text-white">🔥 {profile?.current_streak ?? 0}</p>
         </div>
         <div className="glass-card p-5">
-          <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Racha récord</p>
+          <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Racha record</p>
           <p className="mt-3 text-3xl font-black text-slate-900 dark:text-white">{profile?.longest_streak ?? 0}</p>
         </div>
         <div className="glass-card p-5">
-          <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Módulos completos</p>
+          <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Modulos completos</p>
           <p className="mt-3 text-3xl font-black text-slate-900 dark:text-white">{stats.completedModules}</p>
         </div>
       </div>
@@ -132,7 +142,7 @@ export default function HomePage() {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Tus módulos</p>
+            <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Tus modulos</p>
             <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-white">Aprende a tu ritmo</h3>
           </div>
           <Link to="/modules" className="text-sm font-black text-brand-blue">
@@ -140,9 +150,32 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <ModuleSection badge="Ruta principal" items={coreModules} moduleProgress={moduleProgress} prefix="Módulo" />
-        <ModuleSection badge="Temáticos" items={thematicModules} moduleProgress={moduleProgress} prefix="Temático" />
-        <ModuleSection badge="Camino B2" items={b2Modules} moduleProgress={moduleProgress} prefix="B2" />
+        <ModuleSection
+          badge="Estudio"
+          title="Ruta principal"
+          description="Empieza por la base y luego continua con el camino B2, sin mezclarlo con los tematicos."
+          items={foundationModules}
+          moduleProgress={moduleProgress}
+          prefix="Modulo"
+        />
+
+        <ModuleSection
+          badge="Tematicos"
+          title="Modulos tematicos"
+          description="Aprende por contexto: trabajo, viajes, emociones, salud, dinero y mas."
+          items={thematicModules}
+          moduleProgress={moduleProgress}
+          prefix="Tematico"
+        />
+
+        <ModuleSection
+          badge="B2"
+          title="Camino B2"
+          description="Cuando termines la base, continua con estos modulos avanzados orientados a examen."
+          items={b2Modules}
+          moduleProgress={moduleProgress}
+          prefix="B2"
+        />
       </div>
     </section>
   );
