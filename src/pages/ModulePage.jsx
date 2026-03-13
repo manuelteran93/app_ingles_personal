@@ -20,12 +20,12 @@ function SectionDivider({ badge, title, description }) {
   );
 }
 
-function ModuleGrid({ items, moduleProgress, prefix }) {
+function ModuleGrid({ items, moduleProgress, labelBuilder }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       {items.map((module, index) => {
         const progress = moduleProgress[module.id] ?? { learned: 0, total: module.phrases.length, percentage: 0 };
-        const label = `${prefix} ${index + 1}`;
+        const label = labelBuilder(module, index);
 
         return (
           <article key={module.id} className="glass-card overflow-hidden">
@@ -85,9 +85,8 @@ function ModuleGrid({ items, moduleProgress, prefix }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const foundationModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const studyModules = sortedModules.filter((module) => module.thematic !== true);
   const thematicModules = sortedModules.filter((module) => module.thematic === true);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10 && module.thematic !== true);
 
   return (
     <section className="space-y-6">
@@ -102,28 +101,27 @@ export default function ModulePage() {
       <div className="space-y-6">
         <SectionDivider
           badge="Estudio"
-          title="Ruta principal"
-          description="Aqui van los modulos base para construir el idioma sin mezclar los tematicos."
+          title="Modulos de estudio"
+          description="La ruta principal y los modulos B2 comparten una sola numeracion continua."
         />
-        <ModuleGrid items={foundationModules} moduleProgress={moduleProgress} prefix="Modulo" />
+        <ModuleGrid
+          items={studyModules}
+          moduleProgress={moduleProgress}
+          labelBuilder={(module, index) => `Modulo ${index + 1}`}
+        />
       </div>
 
       <div className="space-y-6">
         <SectionDivider
           badge="Tematicos"
           title="Modulos tematicos"
-          description="Estos modulos practican contextos concretos como trabajo, viajes, salud o dinero."
+          description="Los modulos tematicos tienen su propia secuencia y empiezan desde Tematico 1."
         />
-        <ModuleGrid items={thematicModules} moduleProgress={moduleProgress} prefix="Tematico" />
-      </div>
-
-      <div className="space-y-6">
-        <SectionDivider
-          badge="B2"
-          title="Camino B2"
-          description="Cuando termines la base, sigue con los modulos avanzados orientados a nivel B2."
+        <ModuleGrid
+          items={thematicModules}
+          moduleProgress={moduleProgress}
+          labelBuilder={(module, index) => `Tematico ${index + 1}`}
         />
-        <ModuleGrid items={b2Modules} moduleProgress={moduleProgress} prefix="B2" />
       </div>
     </section>
   );

@@ -48,7 +48,7 @@ function SectionHeader({ badge, title, description }) {
   );
 }
 
-function ModuleSection({ badge, title, description, items, moduleProgress, prefix }) {
+function ModuleSection({ badge, title, description, items, moduleProgress, labelBuilder }) {
   if (!items.length) {
     return null;
   }
@@ -64,7 +64,7 @@ function ModuleSection({ badge, title, description, items, moduleProgress, prefi
             learned: 0,
             total: module.phrases.length,
           };
-          const label = `${prefix} ${index + 1} · ${module.title}`;
+          const label = labelBuilder(module, index);
 
           return <ModuleCard key={module.id} module={module} progress={progress} label={label} />;
         })}
@@ -77,9 +77,8 @@ export default function HomePage() {
   const { profile, moduleProgress, stats, streakReminderEnabled } = useUser();
   const greeting = useMemo(() => getGreeting(), []);
   const sortedModules = useMemo(() => [...modules].sort((a, b) => a.id - b.id), []);
-  const foundationModules = sortedModules.filter((module) => module.id >= 1 && module.id <= 3);
+  const studyModules = sortedModules.filter((module) => module.thematic !== true);
   const thematicModules = sortedModules.filter((module) => module.thematic === true);
-  const b2Modules = sortedModules.filter((module) => module.id >= 10 && module.thematic !== true);
 
   return (
     <section className="space-y-6">
@@ -152,29 +151,20 @@ export default function HomePage() {
 
         <ModuleSection
           badge="Estudio"
-          title="Ruta principal"
-          description="Empieza por la base y luego continua con el camino B2, sin mezclarlo con los tematicos."
-          items={foundationModules}
+          title="Modulos de estudio"
+          description="La ruta principal y el camino B2 comparten una sola numeracion de estudio."
+          items={studyModules}
           moduleProgress={moduleProgress}
-          prefix="Modulo"
+          labelBuilder={(module, index) => `Modulo ${index + 1} · ${module.title}`}
         />
 
         <ModuleSection
           badge="Tematicos"
           title="Modulos tematicos"
-          description="Aprende por contexto: trabajo, viajes, emociones, salud, dinero y mas."
+          description="Estos modulos tienen su propia secuencia y empiezan desde Tematico 1."
           items={thematicModules}
           moduleProgress={moduleProgress}
-          prefix="Tematico"
-        />
-
-        <ModuleSection
-          badge="B2"
-          title="Camino B2"
-          description="Cuando termines la base, continua con estos modulos avanzados orientados a examen."
-          items={b2Modules}
-          moduleProgress={moduleProgress}
-          prefix="B2"
+          labelBuilder={(module, index) => `Tematico ${index + 1} · ${module.title}`}
         />
       </div>
     </section>
