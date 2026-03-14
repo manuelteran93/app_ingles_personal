@@ -10,12 +10,13 @@ export default function BottomNav() {
     { to: "/review", label: "Repaso", icon: "\uD83D\uDD04", badge: reviewCount },
     { to: "/chat", label: "Chat", icon: "\uD83D\uDCAC" },
     { to: "/stories", label: "Historias", icon: "\uD83D\uDCD6" },
+    { to: "/writing", label: "Escribir", icon: "\u270D\uFE0F" },
     { to: "/profile", label: "Perfil", icon: "\uD83D\uDC64" },
   ];
 
   return (
     <nav className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-3xl -translate-x-1/2 rounded-[28px] border border-white/70 bg-white/90 p-2 shadow-card backdrop-blur dark:border-white/10 dark:bg-slate-900/90">
-      <ul className="grid grid-cols-6 gap-2">
+      <ul className="grid grid-cols-7 gap-2">
         {items.map((item) => (
           <li key={item.to}>
             <NavLink

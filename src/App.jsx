@@ -1,4 +1,4 @@
-﻿import { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import BadgeUnlockToast from "./components/BadgeUnlockToast";
 import BottomNav from "./components/BottomNav";
@@ -17,6 +17,7 @@ const RankingPage = lazy(() => import("./pages/RankingPage"));
 const ReviewPage = lazy(() => import("./pages/ReviewPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const StoriesPage = lazy(() => import("./pages/StoriesPage"));
+const WritingPage = lazy(() => import("./pages/WritingPage"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 
 function SplashScreen() {
@@ -125,6 +126,7 @@ export default function App() {
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/stories" element={<StoriesPage />} />
+          <Route path="/writing" element={<WritingPage />} />
           <Route path="/module/:id" element={<LessonView />} />
           <Route path="/module/:id/quiz" element={<QuizPage />} />
           <Route path="/ranking" element={<RankingPage />} />

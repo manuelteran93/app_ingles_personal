@@ -8,7 +8,8 @@ const titles = {
   "/modules": "M\u00F3dulos",
   "/review": "Repaso diario",
   "/chat": "Chat con IA",
-  "/stories": "Historias en ingl\u00E9s",
+  "/stories": "Historias en ingles",
+  "/writing": "Practica tu escritura",
   "/ranking": "Ranking social",
   "/profile": "Perfil",
 };

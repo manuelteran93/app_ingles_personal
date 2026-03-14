@@ -85,9 +85,10 @@ function ModuleGrid({ items, moduleProgress, labelBuilder }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const studyModules = sortedModules.filter((module) => !module.thematic && module.type !== "grammar");
+  const studyModules = sortedModules.filter((module) => !module.thematic && module.type !== "grammar" && module.type !== "vocabulary");
   const thematicModules = sortedModules.filter((module) => module.thematic === true);
   const grammarModules = sortedModules.filter((module) => module.type === "grammar");
+  const vocabularyModules = sortedModules.filter((module) => module.type === "vocabulary");
 
   return (
     <section className="space-y-6">
@@ -135,6 +136,19 @@ export default function ModulePage() {
           items={grammarModules}
           moduleProgress={moduleProgress}
           labelBuilder={(module, index) => `Gramatica ${index + 1}`}
+        />
+      </div>
+
+      <div className="space-y-6">
+        <SectionDivider
+          badge="Vocabulario"
+          title={"Vocabulario B2 \u{1F4DA}"}
+          description="Amplia tu registro academico y formal con conectores y palabras clave del nivel B2."
+        />
+        <ModuleGrid
+          items={vocabularyModules}
+          moduleProgress={moduleProgress}
+          labelBuilder={(module, index) => `Vocabulario ${index + 1}`}
         />
       </div>
     </section>

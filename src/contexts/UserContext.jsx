@@ -96,7 +96,7 @@ function formatDateLabel(dateString) {
 }
 
 function buildWeeklyData(progressEntries) {
-  const dayLabels = ["Dom", "Lun", "Mar", "Mi�", "Jue", "Vie", "S�b"];
+  const dayLabels = ["Dom", "Lun", "Mar", "MiÃƒÂ©", "Jue", "Vie", "SÃƒÂ¡b"];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -550,7 +550,7 @@ export function UserProvider({ children }) {
       quizPoints = 30;
     }
 
-    const totalPointsEarned = quizPoints + bonusPoints;
+    const totalPointsEarned = typeof options.pointsOverride === "number" ? options.pointsOverride : quizPoints + bonusPoints;
     const previousBadgeIds = checkBadges(
       buildStatsState(normalizedProgress, quizResults, profile),
       profile,
