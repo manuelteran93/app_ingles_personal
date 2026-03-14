@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar";
 import { useUser } from "../contexts/UserContext";
 import { modules } from "../data/phrasalVerbs";
@@ -85,8 +85,9 @@ function ModuleGrid({ items, moduleProgress, labelBuilder }) {
 export default function ModulePage() {
   const { moduleProgress } = useUser();
   const sortedModules = [...modules].sort((a, b) => a.id - b.id);
-  const studyModules = sortedModules.filter((module) => module.thematic !== true);
+  const studyModules = sortedModules.filter((module) => !module.thematic && module.type !== "grammar");
   const thematicModules = sortedModules.filter((module) => module.thematic === true);
+  const grammarModules = sortedModules.filter((module) => module.type === "grammar");
 
   return (
     <section className="space-y-6">
@@ -94,15 +95,15 @@ export default function ModulePage() {
         <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Biblioteca de aprendizaje</p>
         <h2 className="mt-3 text-4xl font-black text-slate-900 dark:text-white">Elige tu siguiente reto</h2>
         <p className="mt-4 max-w-3xl text-base font-semibold text-slate-500 dark:text-slate-300">
-          Cada modulo incluye 20 phrasal verbs, tarjetas con audio y un quiz final de 10 preguntas aleatorias.
+          Cada modulo incluye 20 tarjetas con audio, ejemplos practicos y un quiz final de 10 preguntas aleatorias.
         </p>
       </div>
 
       <div className="space-y-6">
         <SectionDivider
-          badge="Estudio"
-          title="Modulos de estudio"
-          description="La ruta principal y los modulos B2 comparten una sola numeracion continua."
+          badge="Nivel"
+          title="Por nivel"
+          description="La ruta principal mantiene la progresion tradicional desde Basico hasta Examen B2."
         />
         <ModuleGrid
           items={studyModules}
@@ -113,14 +114,27 @@ export default function ModulePage() {
 
       <div className="space-y-6">
         <SectionDivider
-          badge="Tematicos"
-          title="Modulos tematicos"
-          description="Los modulos tematicos tienen su propia secuencia y empiezan desde Tematico 1."
+          badge="Tema"
+          title="Por tema"
+          description="Practica vocabulario util agrupado por contextos reales del dia a dia."
         />
         <ModuleGrid
           items={thematicModules}
           moduleProgress={moduleProgress}
           labelBuilder={(module, index) => `Tematico ${index + 1}`}
+        />
+      </div>
+
+      <div className="space-y-6">
+        <SectionDivider
+          badge="Gramatica"
+          title={"Gramatica B2 \u{1F4DD}"}
+          description="Refuerza estructuras clave del nivel B2 con formulas, ejemplos y uso practico."
+        />
+        <ModuleGrid
+          items={grammarModules}
+          moduleProgress={moduleProgress}
+          labelBuilder={(module, index) => `Gramatica ${index + 1}`}
         />
       </div>
     </section>

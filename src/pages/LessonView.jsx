@@ -1,4 +1,4 @@
-﻿import confetti from "canvas-confetti";
+import confetti from "canvas-confetti";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import PhraseCard from "../components/PhraseCard";
@@ -65,10 +65,10 @@ export default function LessonView() {
       <section className="mx-auto max-w-3xl">
         <div className="glass-card overflow-hidden text-center">
           <div className="bg-gradient-to-br from-brand-green via-brand-yellow to-brand-blue p-8 text-slate-950 sm:p-10">
-            <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-900/60">Módulo completado</p>
-            <h2 className="mt-3 text-4xl font-black sm:text-5xl">¡Excelente trabajo!</h2>
+            <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-900/60">Modulo completado</p>
+            <h2 className="mt-3 text-4xl font-black sm:text-5xl">{"\u00A1Excelente trabajo!"}</h2>
             <p className="mt-4 text-lg font-bold">
-              Sumaste {sessionPoints} puntos en esta sesión y avanzaste en {module.title}.
+              Sumaste {sessionPoints} puntos en esta sesion y avanzaste en {module.title}.
             </p>
           </div>
           <div className="grid gap-4 p-6 sm:grid-cols-3 sm:p-8">
@@ -91,7 +91,7 @@ export default function LessonView() {
               onClick={restartLesson}
               className="pill-button w-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-white"
             >
-              Repetir módulo
+              Repetir modulo
             </button>
             <Link
               to={`/module/${module.id}/quiz`}
@@ -117,7 +117,7 @@ export default function LessonView() {
       <div className="glass-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Módulo {module.id}</p>
+            <p className="text-sm font-black uppercase tracking-[0.35em] text-slate-400">Modulo {module.id}</p>
             <h2 className="mt-2 text-3xl font-black text-slate-900 dark:text-white">
               {module.title} {module.emoji}
             </h2>
@@ -125,7 +125,7 @@ export default function LessonView() {
               Tarjeta {currentIndex + 1} de {module.phrases.length}
             </p>
           </div>
-          <div className="min-w-[220px] flex-1 max-w-sm">
+          <div className="min-w-[220px] max-w-sm flex-1">
             <ProgressBar value={overallProgress} color={module.color} showLabel />
           </div>
         </div>
@@ -134,6 +134,7 @@ export default function LessonView() {
       <PhraseCard
         phrase={currentPhrase}
         moduleColor={module.color}
+        moduleType={module.type}
         progress={moduleState.percentage}
         currentStatus={currentStatus}
         onKnow={() => handleAction("learned")}

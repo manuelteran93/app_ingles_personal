@@ -1,35 +1,43 @@
-﻿import AudioButton from "./AudioButton";
+import AudioButton from "./AudioButton";
 import ProgressBar from "./ProgressBar";
 import { phraseExamples } from "../data/phraseExamples";
 
 const IPA_PATTERN = /^\/[A-Za-z\u00E6\u0251\u0252\u0254\u0259\u025C\u026A\u028A\u0283\u0292\u014B\u00F0\u03B8\u02C8\u02CC\u02D0.()\-\s]+\/$/u;
 
-function getDisplayPronunciation(phrase) {
+function getDisplayPronunciation(phrase, moduleType) {
   const ipa = phrase?.ipa?.trim();
+
+  if (moduleType === "grammar") {
+    return ipa || "Revisa la formula y el ejemplo principal para practicar esta estructura.";
+  }
 
   if (ipa && ipa.length <= 40 && IPA_PATTERN.test(ipa)) {
     return ipa;
   }
 
-  return "Escucha el audio y usa las oraciones de ejemplo para practicar la pronunciación.";
+  return "Escucha el audio y usa las oraciones de ejemplo para practicar la pronunciacion.";
 }
 
 export default function PhraseCard({
   phrase,
   moduleColor,
+  moduleType,
   progress,
   onKnow,
   onReview,
   currentStatus,
   disabled,
 }) {
-  const displayPronunciation = getDisplayPronunciation(phrase);
+  const isGrammarModule = moduleType === "grammar";
+  const displayPronunciation = getDisplayPronunciation(phrase, moduleType);
   const examples =
     phraseExamples[phrase.id] ?? [
       {
         sentence: phrase.example,
         translation: phrase.exampleTranslation,
-        pronunciation: "Escucha la oración para practicar la pronunciación.",
+        pronunciation: isGrammarModule
+          ? "Escucha la estructura y usa la formula para recordar como se construye."
+          : "Escucha la oracion para practicar la pronunciacion.",
       },
     ];
 
@@ -39,7 +47,7 @@ export default function PhraseCard({
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">
-              Lección activa
+              {isGrammarModule ? "Regla gramatical" : "Leccion activa"}
             </p>
             <h2 className="mt-2 text-3xl font-black sm:text-4xl">{phrase.phrase}</h2>
           </div>
@@ -48,18 +56,24 @@ export default function PhraseCard({
 
         <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[24px] bg-slate-50 p-5 dark:bg-slate-800/70">
-            <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Pronunciación base</p>
+            <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">
+              {isGrammarModule ? "Formula / Estructura" : "Pronunciacion base"}
+            </p>
             <p className="mt-3 text-2xl font-bold text-slate-700 dark:text-slate-100">{displayPronunciation}</p>
             <p className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-slate-400">Significado</p>
             <p className="mt-3 text-xl font-bold text-slate-700 dark:text-slate-100">{phrase.meaning}</p>
           </div>
 
           <div className="rounded-[24px] p-5 text-white" style={{ backgroundColor: moduleColor }}>
-            <p className="text-sm font-black uppercase tracking-[0.3em] text-white/80">Cómo usarla</p>
+            <p className="text-sm font-black uppercase tracking-[0.3em] text-white/80">Como usarla</p>
             <p className="mt-3 text-xl font-extrabold">{examples[0].sentence}</p>
             <p className="mt-4 text-base font-semibold text-white/90">{examples[0].translation}</p>
-            <p className="mt-4 text-sm font-black uppercase tracking-[0.3em] text-white/80">Pronunciación escrita</p>
-            <p className="mt-2 text-sm font-semibold text-white/95">{examples[0].pronunciation}</p>
+            <p className="mt-4 text-sm font-black uppercase tracking-[0.3em] text-white/80">
+              {isGrammarModule ? "Clave de uso" : "Pronunciacion escrita"}
+            </p>
+            <p className="mt-2 text-sm font-semibold text-white/95">
+              {phrase.explanation ?? examples[0].pronunciation}
+            </p>
           </div>
         </div>
 
@@ -70,7 +84,7 @@ export default function PhraseCard({
                 5 oraciones de ejemplo
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
-                Léelas, escucha cada una y usa la guía escrita para pronunciarla mejor.
+                Leelas, escucha cada una y usa la guia escrita para comprenderla mejor.
               </p>
             </div>
             <div className="w-full max-w-xs">
@@ -90,13 +104,13 @@ export default function PhraseCard({
                       {example.translation}
                     </p>
                     <p className="mt-3 text-xs font-black uppercase tracking-[0.25em] text-slate-400">
-                      Cómo pronunciarla
+                      {isGrammarModule ? "Como se construye" : "Como pronunciarla"}
                     </p>
                     <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      {example.pronunciation}
+                      {isGrammarModule ? phrase.ipa : example.pronunciation}
                     </p>
                   </div>
-                  <AudioButton text={example.sentence} label={`Escuchar oración ${index + 1}`} />
+                  <AudioButton text={example.sentence} label={`Escuchar oracion ${index + 1}`} />
                 </div>
               </div>
             ))}
@@ -114,7 +128,7 @@ export default function PhraseCard({
                   ? "Ya la dominaste"
                   : currentStatus === "reviewing"
                     ? "Marcada para repasar"
-                    : "Aún sin responder"}
+                    : "Aun sin responder"}
               </p>
             </div>
           </div>
@@ -128,7 +142,7 @@ export default function PhraseCard({
           disabled={disabled}
           className="pill-button w-full bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
         >
-          Repasar 🔄
+          Repasar {"\u{1F504}"}
         </button>
         <button
           type="button"
@@ -137,7 +151,7 @@ export default function PhraseCard({
           className="pill-button w-full text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           style={{ backgroundColor: moduleColor }}
         >
-          ¡Lo sé! ✅
+          {"\u00A1Lo se!"} {"\u2705"}
         </button>
       </div>
     </article>
