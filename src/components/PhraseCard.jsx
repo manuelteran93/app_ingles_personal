@@ -3,6 +3,24 @@ import ProgressBar from "./ProgressBar";
 import { phraseExamples } from "../data/phraseExamples";
 
 const IPA_PATTERN = /^\/[A-Za-z\u00E6\u0251\u0252\u0254\u0259\u025C\u026A\u028A\u0283\u0292\u014B\u00F0\u03B8\u02C8\u02CC\u02D0.()\-\s]+\/$/u;
+const MOJIBAKE_PATTERN = /[ÃÂÆâ?]/u;
+
+function looksCorruptedText(value) {
+  return typeof value === "string" && MOJIBAKE_PATTERN.test(value);
+}
+
+function getSafeSupportText(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || looksCorruptedText(trimmed)) {
+    return fallback;
+  }
+
+  return trimmed;
+}
 
 function getDisplayPronunciation(phrase, moduleType) {
   const ipa = phrase?.ipa?.trim();
@@ -41,6 +59,17 @@ export default function PhraseCard({
       },
     ];
 
+  const primaryPronunciation = getSafeSupportText(
+    examples[0]?.pronunciation,
+    isGrammarModule
+      ? "Escucha la estructura y usa la formula para recordar como se construye."
+      : "Escucha la oracion para practicar la pronunciacion.",
+  );
+
+  const extraExplanation = !isGrammarModule
+    ? getSafeSupportText(phrase.explanation, "")
+    : "";
+
   return (
     <article className="glass-card overflow-hidden">
       <div className="p-6 sm:p-8">
@@ -72,8 +101,14 @@ export default function PhraseCard({
               {isGrammarModule ? "Clave de uso" : "Pronunciacion escrita"}
             </p>
             <p className="mt-2 text-sm font-semibold text-white/95">
-              {phrase.explanation ?? examples[0].pronunciation}
+              {isGrammarModule ? getSafeSupportText(phrase.explanation, primaryPronunciation) : primaryPronunciation}
             </p>
+            {!isGrammarModule && extraExplanation ? (
+              <>
+                <p className="mt-4 text-sm font-black uppercase tracking-[0.3em] text-white/80">Uso comun</p>
+                <p className="mt-2 text-sm font-semibold text-white/95">{extraExplanation}</p>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -107,7 +142,12 @@ export default function PhraseCard({
                       {isGrammarModule ? "Como se construye" : "Como pronunciarla"}
                     </p>
                     <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      {isGrammarModule ? phrase.ipa : example.pronunciation}
+                      {isGrammarModule
+                        ? phrase.ipa
+                        : getSafeSupportText(
+                            example.pronunciation,
+                            "Escucha la oracion para practicar la pronunciacion.",
+                          )}
                     </p>
                   </div>
                   <AudioButton text={example.sentence} label={`Escuchar oracion ${index + 1}`} />
